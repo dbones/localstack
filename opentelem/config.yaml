@@ -1,0 +1,105 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+  
+  jaeger:
+    protocols:
+      thrift_compact:
+
+  redis:
+    endpoint: "redis:6379"
+    collection_interval: 10s
+    tls:
+      insecure: true
+
+  # postgresql:
+  #   endpoint: localhost:5432
+  #   transport: tcp
+  #   username: postgres
+  #   password: abc123!!
+  #   databases:
+  #     - postgres
+  #   collection_interval: 10s
+  #   tls:
+  #     insecure: true
+
+  # rabbitmq:
+  #   endpoint: http://rabbitmq:15672
+  #   username: admin
+  #   password: abc123!!
+  #   collection_interval: 10s
+  #   tls:
+  #     insecure: true
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+  otlp/1:
+    endpoint: "tempo:4317"
+    tls:
+      insecure: true
+
+  otlp/2:
+    endpoint: "jaeger:4317"
+    tls:
+      insecure: true
+
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+
+# connectors:
+#   spanmetrics:
+#     histogram:
+#       explicit:
+#         buckets: [ 5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1000ms ]
+
+processors:
+  batch:
+
+  
+  resource:
+    attributes:
+      - action: insert
+        key: service_name
+        from_attribute: service.name
+      - action: insert
+        key: loki.resource.labels
+        value: service.name
+      - action: insert
+        key: loki.resource.labels
+        value: container.name
+      - action: insert
+        key: loki.format
+        value: json
+
+# extensions:
+#   health_check:
+#   pprof:
+#     endpoint: 1888
+#   zpages:
+#     endpoint: 55679
+
+extensions:
+  health_check:
+  pprof:
+  zpages:
+
+
+service:  
+  extensions: [ pprof, zpages, health_check ]
+  pipelines:
+    traces:
+      receivers: [ jaeger ]
+      processors: [ batch ]
+      exporters: [ otlp/1, otlp/2 ]
+    metrics:
+      receivers:  [ otlp, redis ]
+      processors: [ batch ]
+      exporters:  [ prometheus ]
+    logs:
+      receivers: [ otlp ]
+      processors: [ resource ]
+      exporters: [ loki ]

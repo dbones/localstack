@@ -1,0 +1,10 @@
+apiVersion: v1
+
+providers:
+  - name: 'dashboards'
+    ordId: 1
+    folder: 'dashboards'
+    folderUid: ''
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards
