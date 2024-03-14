@@ -7,7 +7,7 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       - targets:
-          - host.docker.internal:5000
+          - host.docker.internal:5235
 
 
   - job_name: aggregated-trace-metrics

@@ -92,12 +92,10 @@ service:
   extensions: [ pprof, zpages, health_check ]
   pipelines:
     traces:
-      receivers: [ jaeger ]
-      processors: [ batch ]
+      receivers: [ otlp ]
       exporters: [ otlp/1, otlp/2 ]
     metrics:
       receivers:  [ otlp, redis ]
-      processors: [ batch ]
       exporters:  [ prometheus ]
     logs:
       receivers: [ otlp ]
